@@ -1,26 +1,45 @@
-name: CI
+name: CI Test Suite
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "assets/**"
+      - "LICENSE"
+      - ".gitignore"
   pull_request:
-    branches: [ main ]
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "assets/**"
+      - "LICENSE"
+      - ".gitignore"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.12"]
+    timeout-minutes: 5
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.12"
+
       - name: Build Static Site
         run: |
           python3 build.py
-      - name: Run Smoke & SEO Tests
+
+      - name: Execute Tests
         run: |
           python3 -m unittest discover -s tests -p "test_*.py"
