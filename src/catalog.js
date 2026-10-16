@@ -95,14 +95,55 @@
     toolGrid.innerHTML = filtered.map(renderToolCard).join("");
   }
 
+  let toastTimer = null;
+  window.triggerToast = function (message) {
+    let toast = document.getElementById("quick-toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.id = "quick-toast";
+      toast.className = "quick-toast";
+      toast.innerHTML = `<span class="quick-toast-icon">✓</span><span id="quick-toast-msg"></span>`;
+      document.body.appendChild(toast);
+    }
+    const msgEl = document.getElementById("quick-toast-msg");
+    if (msgEl) msgEl.textContent = message;
+    toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toast.classList.remove("show");
+    }, 2200);
+  };
+
+  window.copyToolLink = function (url, name) {
+    const fullUrl = url.startsWith("http") ? url : (window.location.origin + "/" + url.replace(/^\//, ""));
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      window.triggerToast(`Copied ${name} link! 📋`);
+    }).catch(() => {
+      // Fallback
+      window.triggerToast(`Link: ${fullUrl}`);
+    });
+  };
+
+  window.copyCliCommand = function (slug) {
+    const cmd = `devos ${slug}`;
+    navigator.clipboard.writeText(cmd).then(() => {
+      window.triggerToast(`Copied CLI: ${cmd} 🚀`);
+    }).catch(() => {
+      window.triggerToast(`CLI: ${cmd}`);
+    });
+  };
+
   function renderToolCard(tool) {
     const isLive = tool.availability_status === "verified_live" && Boolean(tool.live_url);
     const statusLabel = isLive ? "Verified Live" : "Staged Offline";
     const statusClass = isLive ? "status-live" : "status-staged";
+    const targetUrl = tool.live_url || `tools/${tool.seo_slug}.html`;
 
     const launchButton = isLive
-      ? `<a href="${tool.live_url}" target="_blank" rel="noopener noreferrer" class="btn-launch">⚡ Launch Tool</a>`
-      : `<a href="tools/${tool.seo_slug}.html" class="btn-launch" style="background-color: var(--color-surface-elevated); color: var(--color-text); border: 1px solid var(--color-border);">📖 View Documentation</a>`;
+      ? `<a href="${tool.live_url}" target="_blank" rel="noopener noreferrer" class="btn-launch">⚡ Launch Tool ↗</a>`
+      : `<a href="tools/${tool.seo_slug}.html" class="btn-launch" style="background-color: var(--color-surface-elevated); color: var(--color-text); border: 1px solid var(--color-border);">📖 View Docs</a>`;
+
+    const safeName = tool.name.replace(/'/g, "\\'");
 
     return `
       <article class="tool-card" id="card-${tool.seo_slug}">
@@ -122,7 +163,13 @@
         </div>
         <div class="card-actions">
           ${launchButton}
-          <a href="tools/${tool.seo_slug}.html" class="btn-doc">Details</a>
+          <button type="button" class="btn-quick-copy" onclick="window.copyToolLink('${targetUrl}', '${safeName}')" title="Copy Tool Link to Clipboard">
+            📋 Copy Link
+          </button>
+          <button type="button" class="btn-cli-copy" onclick="window.copyCliCommand('${tool.seo_slug}')" title="Copy CLI Command">
+            &gt;_ CLI
+          </button>
+          <a href="tools/${tool.seo_slug}.html" class="btn-doc" title="Tool Details">Details</a>
           <a href="${tool.repository_url}" target="_blank" rel="noopener noreferrer" class="btn-doc" title="View Source on GitHub">
             <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor" style="vertical-align: middle;">
               <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>

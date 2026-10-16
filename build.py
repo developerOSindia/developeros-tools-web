@@ -175,11 +175,13 @@ def build_index_page(registry: dict):
         is_live = t["availability_status"] == "verified_live" and bool(t["live_url"])
         status_label = "Verified Live" if is_live else "Staged Offline"
         status_class = "status-live" if is_live else "status-staged"
+        target_url = t["live_url"] if is_live else f"tools/{t['seo_slug']}.html"
+        safe_name = t["name"].replace("'", "\\'")
 
         launch_btn = (
-            f'<a href="{t["live_url"]}" target="_blank" rel="noopener noreferrer" class="btn-launch">⚡ Launch Tool</a>'
+            f'<a href="{t["live_url"]}" target="_blank" rel="noopener noreferrer" class="btn-launch">⚡ Launch Tool ↗</a>'
             if is_live
-            else f'<a href="tools/{t["seo_slug"]}.html" class="btn-launch" style="background-color: var(--color-surface-elevated); color: var(--color-text); border: 1px solid var(--color-border);">📖 View Documentation</a>'
+            else f'<a href="tools/{t["seo_slug"]}.html" class="btn-launch" style="background-color: var(--color-surface-elevated); color: var(--color-text); border: 1px solid var(--color-border);">📖 View Docs</a>'
         )
 
         card = f"""
@@ -200,7 +202,13 @@ def build_index_page(registry: dict):
           </div>
           <div class="card-actions">
             {launch_btn}
-            <a href="tools/{t['seo_slug']}.html" class="btn-doc">Details</a>
+            <button type="button" class="btn-quick-copy" onclick="copyToolLink('{target_url}', '{safe_name}')" title="Copy Tool Link to Clipboard">
+              📋 Copy Link
+            </button>
+            <button type="button" class="btn-cli-copy" onclick="copyCliCommand('{t['seo_slug']}')" title="Copy CLI Command">
+              &gt;_ CLI
+            </button>
+            <a href="tools/{t['seo_slug']}.html" class="btn-doc" title="Tool Details">Details</a>
             <a href="{t['repository_url']}" target="_blank" rel="noopener noreferrer" class="btn-doc" title="View Source on GitHub">
               <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
                 <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
@@ -291,6 +299,30 @@ def build_index_page(registry: dict):
   </main>
 
   {render_footer()}
+
+  <div id="quick-toast" class="quick-toast" role="status" aria-live="polite">
+    <span class="quick-toast-icon">✓</span>
+    <span id="quick-toast-msg"></span>
+  </div>
+
+  <nav class="mobile-bottom-nav" role="navigation" aria-label="Mobile Navigation">
+    <a href="index.html" class="mobile-nav-item active">
+      <span style="font-size: 1.15rem;">⚡</span>
+      <span>Tools</span>
+    </a>
+    <a href="https://developeros.in?utm_source=developeros_tools&utm_medium=mobile_dock&utm_campaign=ecosystem_referral" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
+      <span style="font-size: 1.15rem;">🌐</span>
+      <span>DeveloperOS</span>
+    </a>
+    <a href="{GITHUB_ORG_URL}" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
+      <span style="font-size: 1.15rem;">🐙</span>
+      <span>GitHub</span>
+    </a>
+    <a href="{MAIN_SITE_URL}/privacy?utm_source=developeros_tools&utm_medium=mobile_dock&utm_campaign=ecosystem_referral" class="mobile-nav-item" target="_blank" rel="noopener noreferrer">
+      <span style="font-size: 1.15rem;">🛡️</span>
+      <span>Privacy</span>
+    </a>
+  </nav>
 
   <!-- Embedded Registry Data for Instant Client Search -->
   <script type="application/json" id="registryData">
@@ -404,7 +436,13 @@ def build_tool_pages(registry: dict):
 
       <div style="margin-top: 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
         {launch_ui}
-        <a href="{tool['repository_url']}" target="_blank" rel="noopener noreferrer" class="btn-doc" style="padding: 11px 18px;">
+        <button type="button" class="btn-quick-copy" onclick="copyToolLink('{SITE_URL}/tools/{slug}.html', '{html.escape(tool['name'])}')" style="padding: 11px 18px; min-height: 44px;">
+          📋 Copy Tool Link
+        </button>
+        <button type="button" class="btn-cli-copy" onclick="copyCliCommand('{slug}')" style="padding: 11px 18px; min-height: 44px;">
+          &gt;_ Copy CLI
+        </button>
+        <a href="{tool['repository_url']}" target="_blank" rel="noopener noreferrer" class="btn-doc" style="padding: 11px 18px; min-height: 44px;">
           View Repository on GitHub ↗
         </a>
       </div>
@@ -416,14 +454,19 @@ def build_tool_pages(registry: dict):
         {html.escape(tool['long_description'])}
       </p>
 
-      <h3 style="font-size: 1.1rem; margin-top: 22px; margin-bottom: 8px; color: var(--color-text);">Local Execution Guide</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 22px; margin-bottom: 8px;">
+        <h3 style="font-size: 1.1rem; margin: 0; color: var(--color-text);">Local Execution Guide</h3>
+        <button type="button" class="btn-quick-copy" onclick="copyCodeBlock('install-code-{slug}')" style="font-size: 0.78rem; padding: 6px 12px; min-height: 36px;">
+          📋 Copy Commands
+        </button>
+      </div>
       <p style="font-size: 0.9rem; color: var(--color-text-muted);">
         Clone the standalone suite and launch the application locally with full offline security:
       </p>
-      <div class="code-box">git clone {tool['repository_url']}.git
+      <pre class="code-box" id="install-code-{slug}">git clone {tool['repository_url']}.git
 cd {Path(tool['repository_url']).name}
 pip install -r requirements.txt
-streamlit run app.py</div>
+streamlit run app.py</pre>
     </section>
 
     <section class="tool-detail-section">
@@ -442,6 +485,37 @@ streamlit run app.py</div>
   </main>
 
   {render_footer()}
+
+  <div id="quick-toast" class="quick-toast" role="status" aria-live="polite">
+    <span class="quick-toast-icon">✓</span>
+    <span id="quick-toast-msg"></span>
+  </div>
+
+  <script>
+  let toastTimer = null;
+  function triggerToast(msg) {{
+    const toast = document.getElementById('quick-toast');
+    const msgEl = document.getElementById('quick-toast-msg');
+    if (msgEl) msgEl.textContent = msg;
+    if (toast) {{
+      toast.classList.add('show');
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }}
+  }}
+  function copyToolLink(url, name) {{
+    navigator.clipboard.writeText(url).then(() => triggerToast('Copied ' + name + ' link! 📋'));
+  }}
+  function copyCliCommand(slug) {{
+    navigator.clipboard.writeText('devos ' + slug).then(() => triggerToast('Copied CLI: devos ' + slug + ' 🚀'));
+  }}
+  function copyCodeBlock(id) {{
+    const el = document.getElementById(id);
+    if (el) {{
+      navigator.clipboard.writeText(el.textContent.trim()).then(() => triggerToast('Copied install commands! 📋'));
+    }}
+  }}
+  </script>
 </body>
 </html>
 """
