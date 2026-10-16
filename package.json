@@ -1,0 +1,13 @@
+{
+  "name": "developeros-tools-web",
+  "version": "1.0.0",
+  "description": "DeveloperOS Central Tools Directory Web Portal",
+  "scripts": {
+    "build": "python3 build.py",
+    "preview": "python3 -m http.server 8080 -d dist",
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py'"
+  },
+  "keywords": ["developer-tools", "tools-directory", "cloudflare-pages", "developeros"],
+  "author": "DeveloperOS Team (https://developeros.in)",
+  "license": "MIT"
+}
