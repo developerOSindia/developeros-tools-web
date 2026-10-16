@@ -29,7 +29,7 @@ class TestWebDirectory(unittest.TestCase):
         self.assertTrue(index_file.exists(), "dist/index.html must exist")
         content = index_file.read_text(encoding="utf-8")
 
-        self.assertIn("https://tools.developeros.in/", content)
+        self.assertIn("https://toolkit.developeros.in/", content)
         self.assertIn("https://developeros.in", content)
         self.assertIn('id="toolSearch"', content)
         self.assertIn('id="categoryChips"', content)
@@ -49,14 +49,14 @@ class TestWebDirectory(unittest.TestCase):
             self.assertIn(tool["name"], page_content)
             self.assertIn("https://developeros.in", page_content)
             self.assertIn("SoftwareApplication", page_content)
-            self.assertIn(f"https://tools.developeros.in/tools/{slug}.html", page_content)
+            self.assertIn(f"https://toolkit.developeros.in/tools/{slug}.html", page_content)
 
     def test_sitemap_xml(self):
         sitemap_file = DIST_DIR / "sitemap.xml"
         self.assertTrue(sitemap_file.exists())
         content = sitemap_file.read_text(encoding="utf-8")
         self.assertIn("<urlset", content)
-        self.assertIn("https://tools.developeros.in/", content)
+        self.assertIn("https://toolkit.developeros.in/", content)
         self.assertIn("json-formatter.html", content)
 
     def test_robots_txt(self):
@@ -64,7 +64,7 @@ class TestWebDirectory(unittest.TestCase):
         self.assertTrue(robots_file.exists())
         content = robots_file.read_text(encoding="utf-8")
         self.assertIn("User-agent: *", content)
-        self.assertIn("Sitemap: https://tools.developeros.in/sitemap.xml", content)
+        self.assertIn("Sitemap: https://toolkit.developeros.in/sitemap.xml", content)
 
     def test_static_assets_present(self):
         self.assertTrue((DIST_DIR / "assets" / "styles.css").exists())

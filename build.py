@@ -21,7 +21,7 @@ REGISTRY_FILE = WORKSPACE_ROOT / "infrastructure" / "developeros-tool-registry" 
 DIST_DIR = WEB_ROOT / "dist"
 SRC_DIR = WEB_ROOT / "src"
 
-SITE_URL = "https://tools.developeros.in"
+SITE_URL = "https://toolkit.developeros.in"
 MAIN_SITE_URL = "https://developeros.in"
 GITHUB_ORG_URL = "https://github.com/developerOSindia"
 

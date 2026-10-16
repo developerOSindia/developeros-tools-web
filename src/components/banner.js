@@ -5,7 +5,7 @@
 
 export const BANNER_CONFIG = {
   mainUrl: "https://developeros.in?utm_source=developeros_tools&utm_medium=main_banner&utm_campaign=ecosystem_referral",
-  toolsUrl: "https://tools.developeros.in?utm_source=developeros_tools&utm_medium=secondary_cta&utm_campaign=tools_directory",
+  toolsUrl: "https://toolkit.developeros.in?utm_source=developeros_tools&utm_medium=secondary_cta&utm_campaign=tools_directory",
   githubUrl: "https://github.com/developerOSindia",
   privacyUrl: "https://developeros.in/privacy?utm_source=developeros_tools&utm_medium=footer_link&utm_campaign=ecosystem_referral",
 };
