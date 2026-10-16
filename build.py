@@ -25,6 +25,15 @@ SITE_URL = "https://toolkit.developeros.in"
 MAIN_SITE_URL = "https://developeros.in"
 GITHUB_ORG_URL = "https://github.com/developerOSindia"
 
+PLAYGROUND_TOOLS = {
+    "json-formatter": "json",
+    "json-validator": "json",
+    "base64-codec": "base64",
+    "hash-calculator": "hash",
+    "uuid-generator": "uuid",
+    "jwt-decoder": "jwt",
+}
+
 
 def load_registry() -> dict:
     if not REGISTRY_FILE.exists():
@@ -166,6 +175,317 @@ def render_footer() -> str:
     """
 
 
+def render_playground_drawer() -> str:
+    return """
+  <!-- Interactive Playground Drawer (Obsidian Engine) -->
+  <div id="playgroundOverlay" class="playground-overlay" onclick="handlePlaygroundOverlayClick(event)" aria-hidden="true">
+    <aside id="playgroundDrawer" class="playground-drawer" role="dialog" aria-modal="true" aria-labelledby="playgroundTitle">
+      <div class="playground-header">
+        <div class="playground-header-info">
+          <div class="playground-tag-line">
+            <span class="playground-badge">⚡ Live Sandbox</span>
+            <span class="playground-privacy-pill">🔒 100% In-Memory &bull; Zero Telemetry</span>
+          </div>
+          <h2 id="playgroundTitle" class="playground-title">DeveloperOS Playground</h2>
+        </div>
+        <button type="button" class="playground-close-btn" onclick="closePlayground()" aria-label="Close Playground" title="Close (Esc)">
+          ✕
+        </button>
+      </div>
+
+      <!-- Playground Tool Tabs -->
+      <nav class="playground-tabs" role="tablist" aria-label="Playground Tools">
+        <button type="button" class="playground-tab active" data-tab="json" role="tab" id="tab-json" aria-controls="panel-json" aria-selected="true" onclick="switchPlaygroundTab('json')">
+          <span class="tab-icon">{ }</span>
+          <span class="tab-text">JSON</span>
+        </button>
+        <button type="button" class="playground-tab" data-tab="base64" role="tab" id="tab-base64" aria-controls="panel-base64" aria-selected="false" onclick="switchPlaygroundTab('base64')">
+          <span class="tab-icon">🔤</span>
+          <span class="tab-text">Base64</span>
+        </button>
+        <button type="button" class="playground-tab" data-tab="hash" role="tab" id="tab-hash" aria-controls="panel-hash" aria-selected="false" onclick="switchPlaygroundTab('hash')">
+          <span class="tab-icon">#</span>
+          <span class="tab-text">Hash</span>
+        </button>
+        <button type="button" class="playground-tab" data-tab="uuid" role="tab" id="tab-uuid" aria-controls="panel-uuid" aria-selected="false" onclick="switchPlaygroundTab('uuid')">
+          <span class="tab-icon">🆔</span>
+          <span class="tab-text">UUID</span>
+        </button>
+        <button type="button" class="playground-tab" data-tab="jwt" role="tab" id="tab-jwt" aria-controls="panel-jwt" aria-selected="false" onclick="switchPlaygroundTab('jwt')">
+          <span class="tab-icon">🔑</span>
+          <span class="tab-text">JWT</span>
+        </button>
+      </nav>
+
+      <div class="playground-body">
+        <!-- 1. JSON Formatter & Minifier Panel -->
+        <section id="panel-json" class="playground-panel active" role="tabpanel" aria-labelledby="tab-json">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-heading">JSON Formatter &amp; Minifier</h3>
+              <p class="panel-desc">Beautify, validate, or compact JSON strings purely in-browser.</p>
+            </div>
+            <button type="button" class="btn-mini btn-subtle" onclick="loadJsonSample()">Load Sample</button>
+          </div>
+
+          <div class="playground-input-group">
+            <label for="jsonPlaygroundInput" class="playground-label">JSON Input</label>
+            <textarea id="jsonPlaygroundInput" class="playground-textarea" rows="7" placeholder='Paste raw or unformatted JSON here (e.g. {"key": "val"})...'></textarea>
+          </div>
+
+          <div class="playground-actions-row">
+            <button type="button" class="btn-mini btn-action-primary" onclick="formatJson(2)">Beautify (2 Spaces)</button>
+            <button type="button" class="btn-mini btn-action-secondary" onclick="formatJson(4)">Beautify (4 Spaces)</button>
+            <button type="button" class="btn-mini btn-action-secondary" onclick="minifyJson()">Minify</button>
+            <button type="button" class="btn-mini btn-subtle" onclick="clearJson()">Clear</button>
+          </div>
+
+          <div id="jsonPlaygroundError" class="playground-error-banner" style="display: none;" role="alert"></div>
+
+          <div class="playground-output-group">
+            <div class="output-header-line">
+              <label for="jsonPlaygroundOutput" class="playground-label">Formatted Result</label>
+              <div class="output-actions">
+                <span id="jsonStats" class="output-stat"></span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyJsonOutput()">📋 Copy</button>
+              </div>
+            </div>
+            <textarea id="jsonPlaygroundOutput" class="playground-textarea output-area" rows="8" readonly placeholder="Formatted or minified output will appear here..."></textarea>
+          </div>
+        </section>
+
+        <!-- 2. Base64 Codec Panel -->
+        <section id="panel-base64" class="playground-panel" role="tabpanel" aria-labelledby="tab-base64">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-heading">Base64 Encoder / Decoder</h3>
+              <p class="panel-desc">Encode or decode strings with full UTF-8 Unicode multilingual support.</p>
+            </div>
+            <button type="button" class="btn-mini btn-subtle" onclick="loadBase64Sample()">Load Sample</button>
+          </div>
+
+          <div class="base64-mode-selector">
+            <button type="button" class="mode-tab active" id="b64ModeEncode" onclick="setBase64Mode('encode')">Encode to Base64</button>
+            <button type="button" class="mode-tab" id="b64ModeDecode" onclick="setBase64Mode('decode')">Decode from Base64</button>
+          </div>
+
+          <div class="playground-input-group">
+            <label for="base64PlaygroundInput" id="base64InputLabel" class="playground-label">Plaintext Input (UTF-8)</label>
+            <textarea id="base64PlaygroundInput" class="playground-textarea" rows="6" placeholder="Enter plaintext to encode..."></textarea>
+          </div>
+
+          <div class="playground-actions-row">
+            <button type="button" class="btn-mini btn-action-primary" id="b64ConvertBtn" onclick="runBase64()">Encode Now</button>
+            <button type="button" class="btn-mini btn-subtle" onclick="clearBase64()">Clear</button>
+          </div>
+
+          <div id="base64PlaygroundError" class="playground-error-banner" style="display: none;" role="alert"></div>
+
+          <div class="playground-output-group">
+            <div class="output-header-line">
+              <label for="base64PlaygroundOutput" id="base64OutputLabel" class="playground-label">Base64 Output</label>
+              <button type="button" class="btn-mini btn-subtle" onclick="copyBase64Output()">📋 Copy</button>
+            </div>
+            <textarea id="base64PlaygroundOutput" class="playground-textarea output-area" rows="6" readonly placeholder="Output will appear here..."></textarea>
+          </div>
+        </section>
+
+        <!-- 3. Hash Generator Panel -->
+        <section id="panel-hash" class="playground-panel" role="tabpanel" aria-labelledby="tab-hash">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-heading">Cryptographic Hash Generator</h3>
+              <p class="panel-desc">Real-time SHA-256, SHA-1, and SHA-512 hashes via Web Crypto API.</p>
+            </div>
+            <button type="button" class="btn-mini btn-subtle" onclick="loadHashSample()">Load Sample</button>
+          </div>
+
+          <div class="playground-input-group">
+            <label for="hashPlaygroundInput" class="playground-label">Input Text</label>
+            <textarea id="hashPlaygroundInput" class="playground-textarea" rows="4" placeholder="Type or paste text to compute hashes in real-time..."></textarea>
+          </div>
+
+          <div class="hash-results-list">
+            <div class="hash-result-card">
+              <div class="hash-header">
+                <span class="hash-algo">SHA-256</span>
+                <span class="hash-len">256-bit &bull; 64 hex chars</span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyHash('sha256')">📋 Copy</button>
+              </div>
+              <input type="text" id="hashOutputSha256" class="hash-output-field" readonly placeholder="Compute SHA-256..." />
+            </div>
+
+            <div class="hash-result-card">
+              <div class="hash-header">
+                <span class="hash-algo">SHA-1</span>
+                <span class="hash-len">160-bit &bull; 40 hex chars</span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyHash('sha1')">📋 Copy</button>
+              </div>
+              <input type="text" id="hashOutputSha1" class="hash-output-field" readonly placeholder="Compute SHA-1..." />
+            </div>
+
+            <div class="hash-result-card">
+              <div class="hash-header">
+                <span class="hash-algo">SHA-512</span>
+                <span class="hash-len">512-bit &bull; 128 hex chars</span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyHash('sha512')">📋 Copy</button>
+              </div>
+              <input type="text" id="hashOutputSha512" class="hash-output-field" readonly placeholder="Compute SHA-512..." />
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. UUID Generator Panel -->
+        <section id="panel-uuid" class="playground-panel" role="tabpanel" aria-labelledby="tab-uuid">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-heading">UUID / GUID Generator</h3>
+              <p class="panel-desc">Cryptographically random Version 4 UUIDs using crypto.randomUUID().</p>
+            </div>
+          </div>
+
+          <div class="uuid-options-grid">
+            <div class="uuid-option-group">
+              <label class="playground-label">Quantity</label>
+              <div class="uuid-qty-selector">
+                <button type="button" class="qty-btn active" data-qty="1" onclick="setUuidQty(1)">1</button>
+                <button type="button" class="qty-btn" data-qty="5" onclick="setUuidQty(5)">5</button>
+                <button type="button" class="qty-btn" data-qty="10" onclick="setUuidQty(10)">10</button>
+                <button type="button" class="qty-btn" data-qty="25" onclick="setUuidQty(25)">25</button>
+              </div>
+            </div>
+
+            <div class="uuid-checkboxes">
+              <label class="custom-checkbox-label">
+                <input type="checkbox" id="uuidOptUppercase" onchange="generateUuids()" />
+                <span>Uppercase</span>
+              </label>
+              <label class="custom-checkbox-label">
+                <input type="checkbox" id="uuidOptHyphens" checked onchange="generateUuids()" />
+                <span>Include Hyphens</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="playground-actions-row">
+            <button type="button" class="btn-mini btn-action-primary" onclick="generateUuids()">🔄 Generate New UUIDs</button>
+            <button type="button" class="btn-mini btn-subtle" onclick="copyAllUuids()">📋 Copy All</button>
+          </div>
+
+          <div class="playground-output-group">
+            <div id="uuidOutputContainer" class="uuid-list-container" role="list"></div>
+          </div>
+        </section>
+
+        <!-- 5. JWT Claims Inspector Panel -->
+        <section id="panel-jwt" class="playground-panel" role="tabpanel" aria-labelledby="tab-jwt">
+          <div class="panel-header">
+            <div>
+              <h3 class="panel-heading">JWT Claims Inspector</h3>
+              <p class="panel-desc">Parse and decode JSON Web Tokens into header, payload, and claims.</p>
+            </div>
+            <button type="button" class="btn-mini btn-subtle" onclick="loadJwtSample()">Load Sample</button>
+          </div>
+
+          <div class="playground-input-group">
+            <label for="jwtPlaygroundInput" class="playground-label">Encoded JWT Token</label>
+            <textarea id="jwtPlaygroundInput" class="playground-textarea" rows="4" placeholder="Paste encoded JWT (header.payload.signature)..."></textarea>
+          </div>
+
+          <div class="playground-actions-row">
+            <button type="button" class="btn-mini btn-action-primary" onclick="inspectJwt()">Inspect Claims</button>
+            <button type="button" class="btn-mini btn-subtle" onclick="clearJwt()">Clear</button>
+          </div>
+
+          <div id="jwtPlaygroundError" class="playground-error-banner" style="display: none;" role="alert"></div>
+
+          <div id="jwtPlaygroundResult" class="jwt-result-container" style="display: none;">
+            <div id="jwtMetaStatus" class="jwt-meta-status"></div>
+
+            <div class="jwt-part-box">
+              <div class="jwt-part-header">
+                <span class="jwt-part-title" style="color: #f43f5e;">HEADER (Algorithm &amp; Token Type)</span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyJwtPart('header')">📋 Copy</button>
+              </div>
+              <pre id="jwtHeaderOutput" class="jwt-code-output"></pre>
+            </div>
+
+            <div class="jwt-part-box">
+              <div class="jwt-part-header">
+                <span class="jwt-part-title" style="color: #06b6d4;">PAYLOAD (Claims &amp; Data)</span>
+                <button type="button" class="btn-mini btn-subtle" onclick="copyJwtPart('payload')">📋 Copy</button>
+              </div>
+              <pre id="jwtPayloadOutput" class="jwt-code-output"></pre>
+            </div>
+
+            <div class="jwt-part-box">
+              <div class="jwt-part-header">
+                <span class="jwt-part-title" style="color: #10b981;">SIGNATURE</span>
+              </div>
+              <pre id="jwtSignatureOutput" class="jwt-code-output signature-output"></pre>
+            </div>
+          </div>
+        </section>
+      </div>
+    </aside>
+  </div>
+"""
+
+
+def render_shortcuts_modal() -> str:
+    return """
+  <!-- Keyboard Shortcut Cheat Sheet Modal -->
+  <div id="shortcutsModalOverlay" class="shortcuts-modal-overlay" onclick="handleShortcutsOverlayClick(event)" aria-hidden="true">
+    <div class="shortcuts-modal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle">
+      <div class="shortcuts-modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.3rem;">⌨️</span>
+          <h3 id="shortcutsModalTitle" class="shortcuts-title">Keyboard Shortcuts</h3>
+        </div>
+        <button type="button" class="playground-close-btn" onclick="closeShortcutsModal()" aria-label="Close shortcuts modal" title="Close (Esc)">
+          ✕
+        </button>
+      </div>
+
+      <div class="shortcuts-modal-body">
+        <p class="shortcuts-intro">Navigate and test DeveloperOS tools with instant keyboard commands:</p>
+        <div class="shortcuts-table">
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>?</kbd></div>
+            <div class="shortcut-desc">Open / close this keyboard shortcuts cheat sheet</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>/</kbd></div>
+            <div class="shortcut-desc">Focus the search bar instantly from anywhere</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>Esc</kbd></div>
+            <div class="shortcut-desc">Close any open drawer, modal, or dropdown</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>1</kbd> &ndash; <kbd>9</kbd></div>
+            <div class="shortcut-desc">Quick-filter categories (1 = All, 2..9 = Categories)</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>P</kbd></div>
+            <div class="shortcut-desc">Open live interactive mini-playground drawer</div>
+          </div>
+          <div class="shortcut-row">
+            <div class="shortcut-keys"><kbd>E</kbd></div>
+            <div class="shortcut-desc">Toggle the offline catalog export menu</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="shortcuts-modal-footer">
+        <span class="shortcuts-footer-note">Obsidian Engine &bull; Zero Telemetry</span>
+        <button type="button" class="btn-shortcuts-done" onclick="closeShortcutsModal()">Got it (Esc)</button>
+      </div>
+    </div>
+  </div>
+"""
+
+
 def build_index_page(registry: dict):
     tools = registry.get("tools", [])
     categories = sorted(list({t["category"] for t in tools}))
@@ -184,6 +504,11 @@ def build_index_page(registry: dict):
             else f'<a href="tools/{t["seo_slug"]}.html" class="btn-launch" style="background-color: var(--color-surface-elevated); color: var(--color-text); border: 1px solid var(--color-border);">📖 View Docs</a>'
         )
 
+        playground_btn = ""
+        if t["seo_slug"] in PLAYGROUND_TOOLS:
+            pg_tab = PLAYGROUND_TOOLS[t["seo_slug"]]
+            playground_btn = f'<button type="button" class="btn-test-browser" onclick="openPlayground(\'{pg_tab}\')" title="Test {safe_name} in browser">⚡ Test In Browser</button>'
+
         card = f"""
         <article class="tool-card" id="card-{t['seo_slug']}">
           <div class="card-top">
@@ -201,6 +526,7 @@ def build_index_page(registry: dict):
             </div>
           </div>
           <div class="card-actions">
+            {playground_btn}
             {launch_btn}
             <button type="button" class="btn-quick-copy" onclick="copyToolLink('{target_url}', '{safe_name}')" title="Copy Tool Link to Clipboard">
               📋 Copy Link
@@ -289,7 +615,42 @@ def build_index_page(registry: dict):
   <main class="catalog-container">
     <div class="tools-count-bar">
       <span id="toolCount">Showing {len(tools)} developer tools</span>
-      <span>Ecosystem: <a href="{MAIN_SITE_URL}" target="_blank">developeros.in</a></span>
+      <div class="tools-bar-actions">
+        <!-- Export Catalog Dropdown -->
+        <div class="export-dropdown" id="exportDropdown">
+          <button type="button" class="btn-export-dropdown" id="exportDropdownBtn" onclick="toggleExportDropdown(event)" aria-haspopup="true" aria-expanded="false" title="Export catalog for offline reference">
+            <span>📥 Export Catalog</span>
+            <span class="dropdown-chevron">▾</span>
+          </button>
+          <div class="export-dropdown-menu" id="exportDropdownMenu" role="menu">
+            <button type="button" class="export-menu-item" role="menuitem" onclick="exportCatalog('json')">
+              <span class="export-badge-format">JSON</span>
+              <div class="export-item-text">
+                <strong>developeros-tools.json</strong>
+                <small>Full offline machine-readable registry</small>
+              </div>
+            </button>
+            <button type="button" class="export-menu-item" role="menuitem" onclick="exportCatalog('md')">
+              <span class="export-badge-format" style="color: #06b6d4; border-color: rgba(6, 182, 212, 0.4); background: rgba(6, 182, 212, 0.1);">MD</span>
+              <div class="export-item-text">
+                <strong>developeros-tools.md</strong>
+                <small>Categorized offline Markdown reference</small>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Shortcuts trigger button -->
+        <button type="button" class="btn-toolbar-tool" onclick="openShortcutsModal()" title="Keyboard Shortcuts (?)">
+          <kbd class="mini-kbd">?</kbd>
+          <span>Shortcuts</span>
+        </button>
+
+        <!-- Playground trigger button -->
+        <button type="button" class="btn-toolbar-tool btn-toolbar-playground" onclick="openPlayground('json')" title="Open Interactive Mini-Playground">
+          <span>⚡ Playground</span>
+        </button>
+      </div>
     </div>
     <div class="tool-grid" id="toolGrid">
       {"".join(tool_cards_html)}
@@ -323,6 +684,9 @@ def build_index_page(registry: dict):
       <span>Privacy</span>
     </a>
   </nav>
+
+  {render_playground_drawer()}
+  {render_shortcuts_modal()}
 
   <!-- Embedded Registry Data for Instant Client Search -->
   <script type="application/json" id="registryData">
@@ -383,6 +747,11 @@ def build_tool_pages(registry: dict):
             }
         }
 
+        playground_link = ""
+        if slug in PLAYGROUND_TOOLS:
+            pg_tab = PLAYGROUND_TOOLS[slug]
+            playground_link = f'<a href="../index.html?playground={pg_tab}" class="btn-test-browser" style="padding: 11px 18px; min-height: 44px; text-decoration: none;">⚡ Test In Browser</a>'
+
         page_html = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -435,6 +804,7 @@ def build_tool_pages(registry: dict):
       </div>
 
       <div style="margin-top: 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        {playground_link}
         {launch_ui}
         <button type="button" class="btn-quick-copy" onclick="copyToolLink('{SITE_URL}/tools/{slug}.html', '{html.escape(tool['name'])}')" style="padding: 11px 18px; min-height: 44px;">
           📋 Copy Tool Link
